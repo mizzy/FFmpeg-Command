@@ -36,7 +36,6 @@ sub output_options {
     my ( $self, $args ) = @_;
     $self->output_file(delete $args->{file});
 
-
     for ( keys %$args ){
         push @{ $self->options }, $option{$_}, $args->{$_};
     }
