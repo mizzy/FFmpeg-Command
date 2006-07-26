@@ -1,6 +1,5 @@
 package FFmpeg::Command;
 
-use KCatch;
 use warnings;
 use strict;
 our $VERSION = '0.01';
@@ -46,7 +45,7 @@ sub output_options {
 
 sub execute {
     my $self = shift;
-    exec $self->ffmpeg, '-i', $self->input_file, @{ $self->options }, $self->output_file;
+    system $self->ffmpeg, '-i', $self->input_file, @{ $self->options }, $self->output_file;
 }
 
 *exec = \&execute;
