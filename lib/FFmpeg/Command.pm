@@ -45,7 +45,6 @@ sub output_options {
 
 sub execute {
     my $self = shift;
-    warn join ' ', @{ $self->options };
     exec $self->ffmpeg, '-i', $self->input_file, @{ $self->options }, $self->output_file;
 }
 
