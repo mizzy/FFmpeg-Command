@@ -2,50 +2,126 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
+our $VERSION = '0.01';
+
+use base qw/Class::Accessor::Fast/;
+__PACKAGE__->mk_accessors( qw(input_file output_file ffmpeg options) );
+
+my %option = (
+    format              => '-f',
+    video_codec         => '-vcodec',
+    bitrate             => '-b',
+    size                => '-s',
+    audio_codec         => '-acodec',
+    audio_sampling_rate => '-ar',
+    audio_bit_rate      => '-ab',
+);
+
+sub new {
+    my $class = shift;
+    my $self = {
+        ffmpeg  => shift || '/usr/bin/ffmpeg',
+        options => [],
+    };
+    bless $self, $class;
+}
+
+sub input_options {
+    my ( $self, $args ) = @_;
+    $self->input_file($args->{file});
+    return;
+}
+
+sub output_options {
+    my ( $self, $args ) = @_;
+    $self->output_file(delete $args->{file});
+
+
+    for ( keys %$args ){
+        push @{ $self->options }, $option{$_}, $args->{$_};
+    }
+
+    return;
+}
+
+sub execute {
+    my $self = shift;
+    warn join ' ', @{ $self->options };
+    exec $self->ffmpeg, '-i', $self->input_file, @{ $self->options }, $self->output_file;
+}
+
+*exec = \&execute;
+
+1;
+__END__
 
 =head1 NAME
 
-FFmpeg::Command - The great new FFmpeg::Command!
+FFmpeg::Command - A wrapper class for ffmpeg command line utility.
 
-=head1 VERSION
+=head1 DESCRIPTION
 
-Version 0.01
 
-=cut
-
-our $VERSION = '0.01';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
-
     use FFmpeg::Command;
 
-    my $foo = FFmpeg::Command->new();
-    ...
+    my $ffmpeg = FFmpeg::Command->new('/usr/local/bin/ffmpeg');
 
-=head1 EXPORT
+    # Converting a video file into another video format.
+    $ffmpeg->input_options({
+        file => $input_file,
+    });
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+    $ffmpeg->output_options({
+        file                => $output_file,
+        format              => 'mp4',
+        video_codec         => 'h264',
+        bitrate             => '640',
+        size                => '320x240',
+        audio_codec         => 'aac',
+        audio_sampling_rate => '44100',
+        audio_bit_rate      => '128',
+    });
 
-=head1 FUNCTIONS
+    $ffmpeg->exec();
 
-=head2 function1
+    # Executing ffmpeg with any options you like.
+    # This sample code takes a screnn shot.
+    $ffmpeg->input_file($input_file);
+    $ffmpeg->output_file($output_file);
 
-=cut
+    $ffmpeg->options(
+        '-y',
+        '-f'       => 'image2',
+        '-pix_fmt' => 'jpg',
+        '-vframes' => 1,
+        '-ss'      => 30,
+        '-s'       => '320x240',
+        '-an',
+    );
 
-sub function1 {
-}
+    $ffmeg->exec();
 
-=head2 function2
+=head1 METHODS
 
-=cut
+=head2 new
 
-sub function2 {
-}
+=head2 input_file
+
+=head2 output_file
+
+=head2 options
+
+=head2 input_options
+
+=head2 output_options
+
+=head2 execute
+
+=head2 exec
+
 
 =head1 AUTHOR
 
@@ -97,5 +173,3 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
-
-1; # End of FFmpeg::Command
