@@ -20,7 +20,7 @@ my %option = (
 sub new {
     my $class = shift;
     my $self = {
-        ffmpeg  => shift || '/usr/bin/ffmpeg',
+        ffmpeg  => shift || 'ffmpeg',
         options => [],
     };
     bless $self, $class;
