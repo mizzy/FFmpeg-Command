@@ -35,9 +35,36 @@ sub input_options {
 sub output_options {
     my ( $self, $args ) = @_;
     $self->output_file(delete $args->{file});
+    my $device = delete $args->{device} || 'ipod';
 
-    for ( keys %$args ){
-        push @{ $self->options }, $option{$_}, $args->{$_};
+    my %device_option = (
+        ipod => {
+            format              => 'mp4',
+            video_codec         => 'h264',
+            bitrate             => 600,
+            size                => '320x240',
+            audio_codec         => 'aac',
+            audio_sampling_rate => 48000,
+            audio_bit_rate      => 64,
+        },
+        psp => {
+            format              => 'psp',
+            video_codec         => 'h264',
+            bitrate             => 600,
+            size                => '320x240',
+            audio_codec         => 'aac',
+            audio_sampling_rate => 48000,
+            audio_bit_rate      => 64,
+        },
+    );
+
+    my %output_option = (
+        %{ $device_option{$device} },
+        %$args,
+    );
+
+    for ( keys %output_option ){
+        push @{ $self->options }, $option{$_}, $output_option{$_};
     }
 
     return;
@@ -59,7 +86,7 @@ FFmpeg::Command - A wrapper class for ffmpeg command line utility.
 
 =head1 DESCRIPTION
 
-
+A simple interface for using ffmpeg command line utility.
 
 =head1 SYNOPSIS
 
@@ -67,25 +94,56 @@ FFmpeg::Command - A wrapper class for ffmpeg command line utility.
 
     my $ffmpeg = FFmpeg::Command->new('/usr/local/bin/ffmpeg');
 
-    # Converting a video file into another video format.
     $ffmpeg->input_options({
         file => $input_file,
     });
 
+    # Convert a video file into iPod playable format.
     $ffmpeg->output_options({
-        file                => $output_file,
-        format              => 'mp4',
-        video_codec         => 'h264',
-        bitrate             => '640',
-        size                => '320x240',
-        audio_codec         => 'aac',
-        audio_sampling_rate => '44100',
-        audio_bit_rate      => '128',
+        file  => $output_file,
+        device => 'ipod',
     });
 
     $ffmpeg->exec();
 
-    # Executing ffmpeg with any options you like.
+    # This is same as above.
+    $ffmpeg->output_options({
+        file                => $output_file,
+        format              => 'mp4',
+        video_codec         => 'h264',
+        bitrate             => 600,
+        size                => '320x240',
+        audio_codec         => 'aac',
+        audio_sampling_rate => 48000,
+        audio_bit_rate      => 64,
+    });
+
+    $ffmpeg->exec();
+
+
+    # Convert a video file into PSP playable format.
+    $ffmpeg->output_options({
+        file  => $output_file,
+        device => 'psp',
+    });
+
+    $ffmpeg->exec();
+
+    # This is same as above.
+    $ffmpeg->output_options({
+        file                => $output_file,
+        format              => 'psp',
+        video_codec         => 'h264',
+        bitrate             => 600,
+        size                => '320x240',
+        audio_codec         => 'aac',
+        audio_sampling_rate => 48000,
+        audio_bit_rate      => 64,
+    });
+
+    $ffmpeg->exec();
+
+    # Execute ffmpeg with any options you like.
     # This sample code takes a screnn shot.
     $ffmpeg->input_file($input_file);
     $ffmpeg->output_file($output_file);
@@ -102,23 +160,88 @@ FFmpeg::Command - A wrapper class for ffmpeg command line utility.
 
     $ffmeg->exec();
 
+
 =head1 METHODS
 
-=head2 new
+=head2 new('/usr/bin/ffmpeg')
 
-=head2 input_file
+Contructs FFmpeg::Command object.It takes a path of ffmpeg command.
+You can omit this argument and this module searches ffmpeg command within PATH environment variable.
 
-=head2 output_file
 
-=head2 options
+=head2 input_options({ %options })
 
-=head2 input_options
+Specify input file name and input options.(Now no options are available.)
 
-=head2 output_options
+=over
 
-=head2 execute
+=item file
 
-=head2 exec
+a file name of input file.
+
+=back
+
+=head2 output_options({ %options })
+
+Specify output file name and output options.
+
+Avaiable options are:
+
+=over
+
+=item file
+
+a file name of output file.
+
+=item format
+
+Output video format.
+
+=item video_codec
+
+Output video codec.
+
+=item bitrate
+
+Output video bitrate.
+
+=item size
+
+Output video screen size.
+
+=item audio_codec
+
+Output audio code.
+
+=item audio_sampling_rate
+
+Output audio sampling rate.
+
+=item audio_bit_rate
+
+Output audio bit rate.
+
+=back
+
+=head2 input_file('/path/to/inpuf_file')
+
+Specify input file name using with options() method.
+
+=head2 output_file('/path/to/output_file')
+
+Specify output file name using with options() method.
+
+=head2 options( @options )
+
+Specify ffmpeg command options directly.
+
+=head2 execute()
+
+Executes ffmpeg comman with specified options.
+
+=head2 exec()
+
+An alias of execute()
 
 
 =head1 AUTHOR
