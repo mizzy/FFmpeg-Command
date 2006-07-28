@@ -4,8 +4,8 @@ use warnings;
 use strict;
 our $VERSION = '0.01';
 
-use base qw( Class::Accessor::Fast Class::ErrorHandler);
-__PACKAGE__->mk_accessors( qw(input_file output_file ffmpeg options) );
+use base qw( Class::Accessor::Fast Class::ErrorHandler );
+__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
 
 use IPC::Run qw( start );
 
@@ -77,8 +77,7 @@ sub execute {
 
     my ( $in, $out, $err );
 
-    my $h = start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ],
-        \$in, \$out, \$err;
+    my $h = start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ], \$in, \$out, \$err;
 
     finish $h or do {
         $self->error($err);
