@@ -22,8 +22,10 @@ my %option = (
 sub new {
     my $class = shift;
     my $self = {
-        ffmpeg  => shift || 'ffmpeg',
-        options => [],
+        ffmpeg      => shift || 'ffmpeg',
+        options     => [],
+        input_file  => '',
+        output_file => '',
     };
     bless $self, $class;
 }
@@ -76,7 +78,6 @@ sub execute {
     my $self = shift;
 
     my ( $in, $out, $err );
-
     my $h = start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ], \$in, \$out, \$err;
 
     finish $h or do {
