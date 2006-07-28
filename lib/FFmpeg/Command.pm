@@ -4,8 +4,10 @@ use warnings;
 use strict;
 our $VERSION = '0.01';
 
-use base qw/Class::Accessor::Fast/;
+use base qw( Class::Accessor::Fast Class::ErrorHandler);
 __PACKAGE__->mk_accessors( qw(input_file output_file ffmpeg options) );
+
+use IPC::Run qw( start );
 
 my %option = (
     format              => '-f',
@@ -72,7 +74,18 @@ sub output_options {
 
 sub execute {
     my $self = shift;
-    system $self->ffmpeg, '-i', $self->input_file, @{ $self->options }, $self->output_file;
+
+    my ( $in, $out, $err );
+
+    my $h = start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ],
+        \$in, \$out, \$err;
+
+    finish $h or do {
+        $self->error($err);
+        return;
+    };
+
+    return 1;
 }
 
 *exec = \&execute;
@@ -104,7 +117,9 @@ A simple interface for using ffmpeg command line utility.
         device => 'ipod',
     });
 
-    $ffmpeg->exec();
+    my $result = $ffmpeg->exec();
+
+    croak $ffmpeg->errstr unless $result;
 
     # This is same as above.
     $ffmpeg->output_options({
