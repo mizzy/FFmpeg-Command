@@ -17,6 +17,8 @@ my %option = (
     audio_codec         => '-acodec',
     audio_sampling_rate => '-ar',
     audio_bit_rate      => '-ab',
+    frame_rate          => '-r',
+    frame_size          => '-s',
 );
 
 sub new {
@@ -78,12 +80,21 @@ sub execute {
     my $self = shift;
 
     my ( $in, $out, $err );
-    my $h = start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ], \$in, \$out, \$err;
-
-    finish $h or do {
-        $self->error($err);
-        return;
+    my $h = eval {
+        start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ],
+            \$in, \$out, \$err;
     };
+
+    if( $@ ){
+        $self->error($@);
+        return;
+    }
+    else {
+        finish $h or do {
+            $self->error($err);
+            return;
+        };
+    }
 
     return 1;
 }
