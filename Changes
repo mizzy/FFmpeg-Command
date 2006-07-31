@@ -1,5 +1,13 @@
 Revision history for FFmpeg-Command
 
+0.03    Mon Jul 31
+        Skip an output option if its value is undef.
+
+0.02    Mon Jul 31
+        Added checking routine of output_options keys.
+        Added output_options (title, author, comment, frame_rate)
+        Renamed size options to frame_size.(You can still use 'size.')
+
 0.01    Thu Jul 27
         First version, released on an unsuspecting world.
 

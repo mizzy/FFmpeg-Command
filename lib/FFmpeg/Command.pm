@@ -2,23 +2,27 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
 
 use IPC::Run qw( start );
+use Carp qw( carp );
 
 my %option = (
     format              => '-f',
     video_codec         => '-vcodec',
     bitrate             => '-b',
-    size                => '-s',
+    frame_rate          => '-r',
+    frame_size          => '-s',
     audio_codec         => '-acodec',
     audio_sampling_rate => '-ar',
     audio_bit_rate      => '-ab',
-    frame_rate          => '-r',
-    frame_size          => '-s',
+    title               => '-title',
+    author              => '-author',
+    comment             => '-comment',
+    size                => '-s',
 );
 
 sub new {
@@ -48,7 +52,7 @@ sub output_options {
             format              => 'mp4',
             video_codec         => 'h264',
             bitrate             => 600,
-            size                => '320x240',
+            frame_size                => '320x240',
             audio_codec         => 'aac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
@@ -57,7 +61,7 @@ sub output_options {
             format              => 'psp',
             video_codec         => 'h264',
             bitrate             => 600,
-            size                => '320x240',
+            frame_size                => '320x240',
             audio_codec         => 'aac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
@@ -70,7 +74,12 @@ sub output_options {
     );
 
     for ( keys %output_option ){
-        push @{ $self->options }, $option{$_}, $output_option{$_};
+        if( defined $option{$_} and defined $output_option{$_} ){
+            push @{ $self->options }, $option{$_}, $output_option{$_};
+        }
+        else {
+            carp "$_ is not defined and ignored.";
+        }
     }
 
     return;
@@ -138,7 +147,7 @@ A simple interface for using ffmpeg command line utility.
         format              => 'mp4',
         video_codec         => 'h264',
         bitrate             => 600,
-        size                => '320x240',
+        frame_size                => '320x240',
         audio_codec         => 'aac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
@@ -161,7 +170,7 @@ A simple interface for using ffmpeg command line utility.
         format              => 'psp',
         video_codec         => 'h264',
         bitrate             => 600,
-        size                => '320x240',
+        frame_size                => '320x240',
         audio_codec         => 'aac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
@@ -231,7 +240,7 @@ Output video codec.
 
 Output video bitrate.
 
-=item size
+=item frame_size
 
 Output video screen size.
 
@@ -246,6 +255,18 @@ Output audio sampling rate.
 =item audio_bit_rate
 
 Output audio bit rate.
+
+=item title
+
+Set the title.
+
+=item author
+
+Set the author.
+
+=item comment
+
+Set the comment.
 
 =back
 
