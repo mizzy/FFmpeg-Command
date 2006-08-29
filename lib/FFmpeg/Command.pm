@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
@@ -50,18 +50,18 @@ sub output_options {
     my %device_option = (
         ipod => {
             format              => 'mp4',
-            video_codec         => 'h264',
+            video_codec         => 'mpeg4',
             bitrate             => 600,
-            frame_size                => '320x240',
+            frame_size          => '320x240',
             audio_codec         => 'aac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
         },
         psp => {
             format              => 'psp',
-            video_codec         => 'h264',
+            video_codec         => 'mpeg4',
             bitrate             => 600,
-            frame_size                => '320x240',
+            frame_size          => '320x240',
             audio_codec         => 'aac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
@@ -145,9 +145,9 @@ A simple interface for using ffmpeg command line utility.
     $ffmpeg->output_options({
         file                => $output_file,
         format              => 'mp4',
-        video_codec         => 'h264',
+        video_codec         => 'mpeg4',
         bitrate             => 600,
-        frame_size                => '320x240',
+        frame_size          => '320x240',
         audio_codec         => 'aac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
@@ -168,9 +168,9 @@ A simple interface for using ffmpeg command line utility.
     $ffmpeg->output_options({
         file                => $output_file,
         format              => 'psp',
-        video_codec         => 'h264',
+        video_codec         => 'mpeg4',
         bitrate             => 600,
-        frame_size                => '320x240',
+        frame_size          => '320x240',
         audio_codec         => 'aac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
