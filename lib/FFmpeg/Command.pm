@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
@@ -10,7 +10,7 @@ __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
 use IPC::Run qw( start );
 use Carp qw( carp );
 
-my %option = (
+our %option = (
     format              => '-f',
     video_codec         => '-vcodec',
     bitrate             => '-b',

@@ -1,5 +1,8 @@
 Revision history for FFmpeg-Command
 
+0.05    Fri Sep 22
+        Change %option from 'my' to 'our'.
+
 0.04    Wed Aug 30
         Change default video_codec from h264 to mpeg4.
 
