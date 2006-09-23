@@ -1,5 +1,8 @@
 Revision history for FFmpeg-Command
 
+0.06    Sun Sep 24
+        Fix t/01-ffmpeg.t to succeed test with ffmpeg that comes with 3gp converter.
+
 0.05    Fri Sep 22
         Change %option from 'my' to 'our'.
 
