@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
@@ -44,8 +44,26 @@ sub input_options {
 
 sub output_options {
     my ( $self, $args ) = @_;
+
     $self->output_file(delete $args->{file});
     my $device = delete $args->{device} || 'ipod';
+    my $media  = delete $args->{media}  || 'video';
+
+    if ( delete $args->{auto_set_media} ) {
+        unless ( $self->input_file ) {
+            $self->error('You must call input_file() or input_options() for setting input file name before calling output_options() when you set auto_set_media to 1.');
+            return;
+        }
+        require MIME::Types;
+        my $myme = MIME::Types->new;
+        $media = $mime->mimeTypeOf( $self->input_file );
+        $media =~ s!(.[^/]+)/!$1!;
+    }
+
+    if ( $media ne 'video' and $media 'audio' ) {
+        $self->error("media '$media' is not valid.'video' or 'audio' is valid.");
+        return;
+    }
 
     my %device_option = (
         ipod => {
@@ -68,10 +86,25 @@ sub output_options {
         },
     );
 
-    my %output_option = (
-        %{ $device_option{$device} },
-        %$args,
+    my %audio_option = (
+        audio_codec         => 'mp3',
+        audio_sampling_rate => 48000,
+        audio_bit_rate      => 128,
     );
+
+    my %output_option;
+    if ( $media eq 'video' ) {
+        %output_option = (
+            %{ $device_option{$device} },
+            %$args,
+        );
+    }
+    else {
+        %output_option = (
+            %audio_option,
+            %$args,
+        );
+    }
 
     for ( keys %output_option ){
         if( defined $option{$_} and defined $output_option{$_} ){
@@ -178,6 +211,30 @@ A simple interface for using ffmpeg command line utility.
 
     $ffmpeg->exec();
 
+    # Convert a audio file into a mp3 formatted auto file.
+    $ffmed->output_options({
+        media => 'audio',
+    });
+
+    $ffmpeg->exec();
+
+    # Convert a audio file into a aac formatted auto file.
+    $ffmed->output_options({
+        media               => 'audio',
+        audio_codec         => 'aac',
+        audio_sampling_rate => 48000,
+        audio_bit_rate      => 128,
+    });
+
+    $ffmpeg->exec();
+
+    # Detect media type of an input file automatically and set output options automatically for the media type.
+    $ffmed->output_options({
+        auto_set_media => 1,
+    });
+
+    $ffmpeg->exec();
+
     # Execute ffmpeg with any options you like.
     # This sample code takes a screnn shot.
     $ffmpeg->input_file($input_file);
@@ -267,6 +324,14 @@ Set the author.
 =item comment
 
 Set the comment.
+
+=item media
+
+Set the media type (video or audio) of an output file.Default is 'video'.
+
+=item auto_set_media
+
+Set the media type of an output file automatically from an input file.
 
 =back
 
