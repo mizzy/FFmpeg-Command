@@ -2,10 +2,10 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
-__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options ) );
+__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr ) );
 
 use IPC::Run qw( start );
 use Carp qw( carp );
@@ -32,6 +32,7 @@ sub new {
         options     => [],
         input_file  => '',
         output_file => '',
+        timeout     => 0,
     };
     bless $self, $class;
 }
@@ -88,10 +89,20 @@ sub output_options {
 sub execute {
     my $self = shift;
 
-    my ( $in, $out, $err );
+    my @opts = ( \$self->{stdin}, \$self->{stdout}, \$self->{stderr} );
+    push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
+
     my $h = eval {
-        start [ $self->ffmpeg, '-y', '-i', $self->input_file, @{ $self->options }, $self->output_file ],
-            \$in, \$out, \$err;
+        start(
+            [
+                $self->ffmpeg,
+                '-y',
+                '-i', $self->input_file,
+                @{ $self->options },
+                $self->output_file
+            ],
+            @opts,
+        );
     };
 
     if( $@ ){
@@ -100,7 +111,7 @@ sub execute {
     }
     else {
         finish $h or do {
-            $self->error($err);
+            $self->error($self->stderr);
             return;
         };
     }
@@ -131,9 +142,12 @@ A simple interface for using ffmpeg command line utility.
         file => $input_file,
     });
 
+    # Set timeout
+    $ffmpeg->timeout(300);
+
     # Convert a video file into iPod playable format.
     $ffmpeg->output_options({
-        file  => $output_file,
+        file   => $output_file,
         device => 'ipod',
     });
 
@@ -203,6 +217,9 @@ A simple interface for using ffmpeg command line utility.
 Contructs FFmpeg::Command object.It takes a path of ffmpeg command.
 You can omit this argument and this module searches ffmpeg command within PATH environment variable.
 
+=head2 timeout()
+
+Set command timeout.Default is 0.
 
 =head2 input_options({ %options })
 
@@ -290,6 +307,13 @@ Executes ffmpeg comman with specified options.
 
 An alias of execute()
 
+=head2 stdout()
+
+Get ffmpeg command output to stdout.
+
+=head2 stderr()
+
+Get ffmpeg command output to stderr.
 
 =head1 AUTHOR
 
