@@ -2,10 +2,10 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
-__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr ) );
+__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
 
 use IPC::Run qw( start );
 use Carp qw( carp );
@@ -46,7 +46,7 @@ sub input_options {
 sub output_options {
     my ( $self, $args ) = @_;
     $self->output_file(delete $args->{file});
-    my $device = delete $args->{device} || 'ipod';
+    my $device = delete $args->{device};
 
     my %device_option = (
         ipod => {
@@ -70,9 +70,16 @@ sub output_options {
     );
 
     my %output_option = (
-        %{ $device_option{$device} },
         %$args,
     );
+
+    # if a device name was supplied, add its output options
+    if( $device ) {
+        %output_option = (
+            %output_option,
+            %{ $device_option{$device} },
+        );
+    }
 
     for ( keys %output_option ){
         if( defined $option{$_} and defined $output_option{$_} ){
@@ -92,17 +99,22 @@ sub execute {
     my @opts = ( \$self->{stdin}, \$self->{stdout}, \$self->{stderr} );
     push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
 
+    my $cmd = [
+        $self->ffmpeg,
+        '-y',
+        '-i', $self->input_file,
+        @{ $self->options },
+    ];
+
+    # add output file only if we have one
+    push @$cmd, $self->output_file
+        if $self->output_file;
+
+    # store the command line so we can debug it
+    $self->command( join( ' ', @$cmd ) );
+
     my $h = eval {
-        start(
-            [
-                $self->ffmpeg,
-                '-y',
-                '-i', $self->input_file,
-                @{ $self->options },
-                $self->output_file
-            ],
-            @opts,
-        );
+        start( $cmd, @opts )
     };
 
     if( $@ ){
@@ -121,7 +133,6 @@ sub execute {
 
 *exec = \&execute;
 
-1;
 __END__
 
 =head1 NAME
@@ -207,7 +218,7 @@ A simple interface for using ffmpeg command line utility.
         '-an',
     );
 
-    $ffmeg->exec();
+    $ffmpeg->exec();
 
 
 =head1 METHODS
