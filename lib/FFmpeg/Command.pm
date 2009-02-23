@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
@@ -34,6 +34,12 @@ sub new {
         output_file => '',
         timeout     => 0,
     };
+
+    if ( system("$self->{ffmpeg} -version >& /dev/null") != 0 ) {
+        carp "Can't find ffmpeg command.";
+        exit 0;
+    }
+
     bless $self, $class;
 }
 

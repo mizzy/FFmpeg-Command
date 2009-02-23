@@ -1,5 +1,10 @@
 Revision history for FFmpeg-Command
 
+0.09    Mon Feb 23
+        Fix for RT#43525.
+        Now tests don't fail even if you don't have ffmpeg installed.
+        Thanks for ANDK.
+
 0.08    Sun Feb 15
         - Only set device options if a device name is supplied.
         - Only include output_file in the ffmpeg command line if we have

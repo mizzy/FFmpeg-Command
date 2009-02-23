@@ -5,7 +5,6 @@ Makefile.PL
 README
 lib/FFmpeg/Command.pm
 t/00-load.t
-t/01-ffmpeg.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
