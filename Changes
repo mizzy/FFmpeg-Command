@@ -1,9 +1,14 @@
 Revision history for FFmpeg-Command
 
+0.10    Thu Mar 3
+        Change audio_codec value from aac to libaac in %device_option
+        because recent version of ffmpeg -acodec option doesn't recognize aac.
+        Thanks to hsbt.
+
 0.09    Mon Feb 23
         Fix for RT#43525.
         Now tests don't fail even if you don't have ffmpeg installed.
-        Thanks for ANDK.
+        Thanks to ANDK.
 
 0.08    Sun Feb 15
         - Only set device options if a device name is supplied.

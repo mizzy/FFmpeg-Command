@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
@@ -60,7 +60,7 @@ sub output_options {
             video_codec         => 'mpeg4',
             bitrate             => 600,
             frame_size          => '320x240',
-            audio_codec         => 'aac',
+            audio_codec         => 'libfaac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
         },
@@ -69,7 +69,7 @@ sub output_options {
             video_codec         => 'mpeg4',
             bitrate             => 600,
             frame_size          => '320x240',
-            audio_codec         => 'aac',
+            audio_codec         => 'libfaac',
             audio_sampling_rate => 48000,
             audio_bit_rate      => 64,
         },
@@ -179,7 +179,7 @@ A simple interface for using ffmpeg command line utility.
         video_codec         => 'mpeg4',
         bitrate             => 600,
         frame_size          => '320x240',
-        audio_codec         => 'aac',
+        audio_codec         => 'libaac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
     });
@@ -202,7 +202,7 @@ A simple interface for using ffmpeg command line utility.
         video_codec         => 'mpeg4',
         bitrate             => 600,
         frame_size          => '320x240',
-        audio_codec         => 'aac',
+        audio_codec         => 'libaac',
         audio_sampling_rate => 48000,
         audio_bit_rate      => 64,
     });
