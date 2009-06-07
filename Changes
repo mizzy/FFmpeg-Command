@@ -1,5 +1,10 @@
 Revision history for FFmpeg-Command
 
+0.11    Sun Jun 7
+        Changed how to handle title, author and comment options
+        because recent version of ffmpeg changed the way to handling these
+        options. Thanks to hsbt.
+
 0.10    Thu Mar 3
         Change audio_codec value from aac to libaac in %device_option
         because recent version of ffmpeg -acodec option doesn't recognize aac.

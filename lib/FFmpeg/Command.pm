@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
@@ -19,10 +19,13 @@ our %option = (
     audio_codec         => '-acodec',
     audio_sampling_rate => '-ar',
     audio_bit_rate      => '-ab',
-    title               => '-title',
-    author              => '-author',
-    comment             => '-comment',
     size                => '-s',
+);
+
+our %metadata = (
+    title               => 'title=',
+    author              => 'author=',
+    comment             => 'comment=',
 );
 
 sub new {
@@ -90,6 +93,9 @@ sub output_options {
     for ( keys %output_option ){
         if( defined $option{$_} and defined $output_option{$_} ){
             push @{ $self->options }, $option{$_}, $output_option{$_};
+        }
+        elsif( defined $metadata{$_} and defined $output_option{$_} ){
+            push @{ $self->options }, '-metadata', $metadata{$_} . $output_option{$_};
         }
         else {
             carp "$_ is not defined and ignored.";
