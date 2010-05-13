@@ -1,5 +1,10 @@
 Revision history for FFmpeg-Command
 
+0.14    Thu May 13
+        Add STDIN support.
+        Add coderef support to stdout and stderr methods.
+	Thanks to Hiroya Itoh.
+
 0.13    Sat Nov 14
         Fix a bug in composing $cmd.
         Thanks to Doran L. "Fozz" Barton.

@@ -2,10 +2,10 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
-__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
+__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdin stdout stderr command ) );
 
 use IPC::Run qw( start );
 use Carp qw( carp );
@@ -108,7 +108,7 @@ sub output_options {
 sub execute {
     my $self = shift;
 
-    my @opts = ( \$self->{stdin}, \$self->{stdout}, \$self->{stderr} );
+    my @opts = map { $self->{$_}  ? $self->{$_}  : \$self->{$_} } qw/stdin stdout stderr/;
     push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
 
     my $files = $self->input_file;
