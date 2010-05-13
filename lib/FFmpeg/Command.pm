@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdout stderr command ) );
@@ -33,12 +33,12 @@ sub new {
     my $self = {
         ffmpeg      => shift || 'ffmpeg',
         options     => [],
-        input_file  => '',
+        input_file  => [],
         output_file => '',
         timeout     => 0,
     };
 
-    if ( system("$self->{ffmpeg} -version >& /dev/null") != 0 ) {
+    if ( system("$self->{ffmpeg} -version > /dev/null 2>&1") != 0 ) {
         carp "Can't find ffmpeg command.";
         exit 0;
     }
@@ -48,7 +48,7 @@ sub new {
 
 sub input_options {
     my ( $self, $args ) = @_;
-    $self->input_file($args->{file});
+    $self->input_file($args->{file} || $args->{'files'});
     return;
 }
 
@@ -111,10 +111,13 @@ sub execute {
     my @opts = ( \$self->{stdin}, \$self->{stdout}, \$self->{stderr} );
     push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
 
+    my $files = $self->input_file;
+    $files = [ $files ] unless ref $files eq 'ARRAY';
+
     my $cmd = [
         $self->ffmpeg,
         '-y',
-        '-i', $self->input_file,
+        map ( { ( '-i', $_ ) } @$files ),
         @{ $self->options },
     ];
 
@@ -252,7 +255,8 @@ Specify input file name and input options.(Now no options are available.)
 
 =item file
 
-a file name of input file.
+a file name of input file or an anonymous list of multiple input files
+(useful for merging audio and video files together).
 
 =back
 
@@ -310,9 +314,9 @@ Set the comment.
 
 =back
 
-=head2 input_file('/path/to/inpuf_file')
+=head2 input_file( @files );
 
-Specify input file name using with options() method.
+Specify names of input file(s) using with options() method.
 
 =head2 output_file('/path/to/output_file')
 

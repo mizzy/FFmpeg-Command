@@ -14,4 +14,4 @@ diag( "Testing FFmpeg::Command $FFmpeg::Command::VERSION, Perl $], $^X" );
 my $ff = FFmpeg::Command->new();
 $ff->options( [ '-version' ] );
 $ff->exec();
-like $ff->errstr, qr/^FFmpeg version/i;
+like $ff->stderr, qr/^FFmpeg version/i;
