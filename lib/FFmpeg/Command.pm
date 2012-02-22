@@ -117,8 +117,8 @@ sub execute {
     my $cmd = [
         $self->ffmpeg,
         '-y',
-        map ( { ( '-i', $_ ) } @$files ),
         @{ $self->options },
+        map ( { ( '-i', $_ ) } @$files ),
     ];
 
     # add output file only if we have one
