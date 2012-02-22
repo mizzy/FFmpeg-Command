@@ -1,5 +1,11 @@
 Revision history for FFmpeg-Command
 
+0.15    Tue Jun 8
+        Fix to #58206.
+        It seems that older version of ffmpeg returns exit code 1 instead
+        of 0 when executing ffmpeg -version.
+        Thanks to Jim Bacon.
+
 0.14    Thu May 13
         Add STDIN support.
         Add coderef support to stdout and stderr methods.
