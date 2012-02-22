@@ -1,5 +1,11 @@
 Revision history for FFmpeg-Command
 
+0.16    Wed Feb 22
+        Fix to pullreq #1(https://github.com/mizzy/FFmpeg-Command/pull/1)
+        This avoids processing/decoding the file when performing a seek for
+        instance.
+	Thanks to c0decafe.
+
 0.15    Tue Jun 8
         Fix to #58206.
         It seems that older version of ffmpeg returns exit code 1 instead
