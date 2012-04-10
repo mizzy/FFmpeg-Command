@@ -1,5 +1,11 @@
 Revision history for FFmpeg-Command
 
+0.17    Tue Apr 10
+        Fix to pullreq #2(https://github.com/mizzy/FFmpeg-Command/pull/2)
+        Options before input files cause error in some version of ffmpeg.
+        So I reverted the fix of #1.
+        Thanks to sumikawa-san.
+
 0.16    Wed Feb 22
         Fix to pullreq #1(https://github.com/mizzy/FFmpeg-Command/pull/1)
         This avoids processing/decoding the file when performing a seek for
