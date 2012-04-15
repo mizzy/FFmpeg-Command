@@ -6,12 +6,20 @@ use FFmpeg::Command;
 use Test::More tests => 2;
 
 BEGIN {
-	use_ok( 'FFmpeg::Command' );
+    use_ok( 'FFmpeg::Command' );
 }
 
 my $ff = FFmpeg::Command->new();
 $ff->options( [ '-version' ] );
+
 my $stderr;
 $ff->stderr(sub { $stderr .= $_[0] });
+
+my $stdout;
+$ff->stdout(sub { $stdout .= $_[0] });
+
 $ff->exec();
-like $stderr, qr/^FFmpeg version/i;
+
+my $out = $stderr || $stdout;
+
+like $out, qr/^FFmpeg version/i;
