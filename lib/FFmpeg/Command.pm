@@ -113,19 +113,7 @@ sub execute {
     my @opts = map { $self->{$_}  ? $self->{$_}  : \$self->{$_} } qw/stdin stdout stderr/;
     push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
 
-    my $files = $self->input_file;
-    $files = [ $files ] unless ref $files eq 'ARRAY';
-
-    my $cmd = [
-        $self->ffmpeg,
-        '-y',
-        map ( { ( '-i', $_ ) } @$files ),
-        @{ $self->options },
-    ];
-
-    # add output file only if we have one
-    push @$cmd, $self->output_file
-        if $self->output_file;
+    my $cmd = $self->_compose_command;
 
     # store the command line so we can debug it
     $self->command( join( ' ', @$cmd ) );
@@ -149,6 +137,26 @@ sub execute {
 }
 
 *exec = \&execute;
+
+sub _compose_command {
+    my $self = shift;
+
+    my $files = $self->input_file;
+    $files = [ $files ] unless ref $files eq 'ARRAY';
+
+    my $cmd = [
+        $self->ffmpeg,
+        '-y',
+        map ( { ( '-i', $_ ) } @$files ),
+        @{ $self->options },
+    ];
+
+    # add output file only if we have one
+    push @$cmd, $self->output_file
+        if $self->output_file;
+
+    return $cmd;
+}
 
 __END__
 
