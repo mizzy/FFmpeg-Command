@@ -5,7 +5,20 @@ use strict;
 our $VERSION = '0.17';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
-__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdin stdout stderr command ) );
+__PACKAGE__->mk_accessors(qw/
+    input_file
+    output_file
+    ffmpeg
+    options
+    global_options
+    infile_options
+    outfile_options
+    timeout
+    stdin
+    stdout
+    stderr
+    command
+ /);
 
 use IPC::Run qw( start );
 use Carp qw( carp );
@@ -30,12 +43,15 @@ our %metadata = (
 
 sub new {
     my $class = shift;
-    my $self = {
-        ffmpeg      => shift || 'ffmpeg',
-        options     => [],
-        input_file  => [],
-        output_file => '',
-        timeout     => 0,
+    my $self            =  {
+        ffmpeg          => shift || 'ffmpeg',
+        options         => [],
+        global_options  => [],
+        infile_options  => [],
+        outfile_options => [],
+        input_file      => [],
+        output_file     => '',
+        timeout         => 0,
     };
 
     system("$self->{ffmpeg} -version > /dev/null 2>&1");
@@ -94,10 +110,10 @@ sub output_options {
 
     for ( keys %output_option ){
         if( defined $option{$_} and defined $output_option{$_} ){
-            push @{ $self->options }, $option{$_}, $output_option{$_};
+            push @{ $self->outfile_options }, $option{$_}, $output_option{$_};
         }
         elsif( defined $metadata{$_} and defined $output_option{$_} ){
-            push @{ $self->options }, '-metadata', $metadata{$_} . $output_option{$_};
+            push @{ $self->outfile_options }, '-metadata', $metadata{$_} . $output_option{$_};
         }
         else {
             carp "$_ is not defined and ignored.";
@@ -147,8 +163,10 @@ sub _compose_command {
     my $cmd = [
         $self->ffmpeg,
         '-y',
-        map ( { ( '-i', $_ ) } @$files ),
+        @{ $self->global_options },
+        map ( { @{ $self->infile_options }, ( '-i', $_ ) } @$files ),
         @{ $self->options },
+        @{ $self->outfile_options },
     ];
 
     # add output file only if we have one
