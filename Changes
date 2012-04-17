@@ -1,5 +1,11 @@
 Revision history for FFmpeg-Command
 
+0.18    Tue Apr 17
+        Current version of ffmpeg has global, infile and outfile options.
+        So fix how to handling options.
+        https://github.com/mizzy/FFmpeg-Command/issues/3
+        Thanks to @sumikawa and @SteveBz!
+
 0.17    Tue Apr 10
         Fix to pullreq #2(https://github.com/mizzy/FFmpeg-Command/pull/2)
         Options before input files cause error in some version of ffmpeg.
