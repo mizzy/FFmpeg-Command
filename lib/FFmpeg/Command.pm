@@ -2,10 +2,23 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
-__PACKAGE__->mk_accessors( qw( input_file output_file ffmpeg options timeout stdin stdout stderr command ) );
+__PACKAGE__->mk_accessors(qw/
+    input_file
+    output_file
+    ffmpeg
+    options
+    global_options
+    infile_options
+    outfile_options
+    timeout
+    stdin
+    stdout
+    stderr
+    command
+ /);
 
 use IPC::Run qw( start );
 use Carp qw( carp );
@@ -30,12 +43,15 @@ our %metadata = (
 
 sub new {
     my $class = shift;
-    my $self = {
-        ffmpeg      => shift || 'ffmpeg',
-        options     => [],
-        input_file  => [],
-        output_file => '',
-        timeout     => 0,
+    my $self            =  {
+        ffmpeg          => shift || 'ffmpeg',
+        options         => [],
+        global_options  => [],
+        infile_options  => [],
+        outfile_options => [],
+        input_file      => [],
+        output_file     => '',
+        timeout         => 0,
     };
 
     system("$self->{ffmpeg} -version > /dev/null 2>&1");
@@ -94,10 +110,10 @@ sub output_options {
 
     for ( keys %output_option ){
         if( defined $option{$_} and defined $output_option{$_} ){
-            push @{ $self->options }, $option{$_}, $output_option{$_};
+            push @{ $self->outfile_options }, $option{$_}, $output_option{$_};
         }
         elsif( defined $metadata{$_} and defined $output_option{$_} ){
-            push @{ $self->options }, '-metadata', $metadata{$_} . $output_option{$_};
+            push @{ $self->outfile_options }, '-metadata', $metadata{$_} . $output_option{$_};
         }
         else {
             carp "$_ is not defined and ignored.";
@@ -113,19 +129,7 @@ sub execute {
     my @opts = map { $self->{$_}  ? $self->{$_}  : \$self->{$_} } qw/stdin stdout stderr/;
     push @opts, IPC::Run::timeout($self->timeout) if $self->timeout;
 
-    my $files = $self->input_file;
-    $files = [ $files ] unless ref $files eq 'ARRAY';
-
-    my $cmd = [
-        $self->ffmpeg,
-        '-y',
-        map ( { ( '-i', $_ ) } @$files ),
-        @{ $self->options },
-    ];
-
-    # add output file only if we have one
-    push @$cmd, $self->output_file
-        if $self->output_file;
+    my $cmd = $self->_compose_command;
 
     # store the command line so we can debug it
     $self->command( join( ' ', @$cmd ) );
@@ -150,6 +154,28 @@ sub execute {
 
 *exec = \&execute;
 
+sub _compose_command {
+    my $self = shift;
+
+    my $files = $self->input_file;
+    $files = [ $files ] unless ref $files eq 'ARRAY';
+
+    my $cmd = [
+        $self->ffmpeg,
+        '-y',
+        @{ $self->global_options },
+        map ( { @{ $self->infile_options }, ( '-i', $_ ) } @$files ),
+        @{ $self->options },
+        @{ $self->outfile_options },
+    ];
+
+    # add output file only if we have one
+    push @$cmd, $self->output_file
+        if $self->output_file;
+
+    return $cmd;
+}
+
 __END__
 
 =head1 NAME
@@ -166,22 +192,71 @@ A simple interface for using ffmpeg command line utility.
 
     my $ffmpeg = FFmpeg::Command->new('/usr/local/bin/ffmpeg');
 
+    # Set timeout
+    $ffmpeg->timeout(300);
+
+    # ga: global  option a, gb: global  option b
+    # ia: infile  option a, ib: infile  option b
+    # oa: outfile option a, ob: outfile option b
+
+    # ffmpeg -y -ga -gb -ia -ib -i filename1 -oa -ob output_file
+    $ffmpeg->global_options(qw/-ga -gb/);
+    $ffmpeg->infile_options(qw/-ia -ib/);
+    $ffmpeg->outfile_options(qw/-oa -ob/);
+    $ffmpeg->input_file('filename1');
+    $ffmpeg->output_file('output_file');
+
+    my $result = $ffmpeg->exec();
+    croak $ffmpeg->errstr unless $result;
+
+    # ffmpeg -y -i filename1 -ga -gb -ia -ib -oa -ob output_file
+    $ffmpeg->options(qw/-ga -gb -ia -ib -oa -ob/);
+    $ffmpeg->input_file('filename1');
+    $ffmpeg->output_file('output_file');
+
+    $ffmpeg->exec();
+
+    # ffmpeg -y -ga -gb -ia -ib -i filename1 -ia -ib -i filename2 -oa -ob output_file
+    # Infile options are adopted for every input files
+    $ffmpeg->global_options(qw/-ga -gb/);
+    $ffmpeg->infile_options(qw/-ia -ib/);
+    $ffmpeg->outfile_options(qw/-oa -ob/);
+    $ffmpeg->input_file(['filename1','filename2']);
+    $ffmpeg->output_file('output_file');
+
+    $ffmpeg->exec()
+
+    # ffmpeg -y -ga -gb -ia1 -ib1 -i filename1 -ia2 -ib2 -i filename2 -oa -ob output_file
+    # Each input file has different infile options
+    $ffmpeg->options(qw/-ga -gb -ia1 -ib1 -i filename1 -ia2 -ib2 -i filename2 -oa -ob output_file/);
+
+    $ffmpeg->exec()
+
+    # This sample code takes a screen shot.
+    $ffmpeg->input_file($input_file);
+    $ffmpeg->output_file($output_file);
+
+    $ffmpeg->options(
+        '-f'       => 'image2',
+        '-pix_fmt' => 'jpg',
+        '-vframes' => 1,
+        '-ss'      => 30,
+        '-s'       => '320x240',
+        '-an',
+    );
+
+    $ffmpeg->exec()
+
+    # Below are old style example(may be obsoleted at future release)
     $ffmpeg->input_options({
         file => $input_file,
     });
-
-    # Set timeout
-    $ffmpeg->timeout(300);
 
     # Convert a video file into iPod playable format.
     $ffmpeg->output_options({
         file   => $output_file,
         device => 'ipod',
     });
-
-    my $result = $ffmpeg->exec();
-
-    croak $ffmpeg->errstr unless $result;
 
     # This is same as above.
     $ffmpeg->output_options({
@@ -195,16 +270,11 @@ A simple interface for using ffmpeg command line utility.
         audio_bit_rate      => 64,
     });
 
-    $ffmpeg->exec();
-
-
     # Convert a video file into PSP playable format.
     $ffmpeg->output_options({
         file  => $output_file,
         device => 'psp',
     });
-
-    $ffmpeg->exec();
 
     # This is same as above.
     $ffmpeg->output_options({
@@ -218,24 +288,6 @@ A simple interface for using ffmpeg command line utility.
         audio_bit_rate      => 64,
     });
 
-    $ffmpeg->exec();
-
-    # Execute ffmpeg with any options you like.
-    # This sample code takes a screnn shot.
-    $ffmpeg->input_file($input_file);
-    $ffmpeg->output_file($output_file);
-
-    $ffmpeg->options(
-        '-y',
-        '-f'       => 'image2',
-        '-pix_fmt' => 'jpg',
-        '-vframes' => 1,
-        '-ss'      => 30,
-        '-s'       => '320x240',
-        '-an',
-    );
-
-    $ffmpeg->exec();
 
 
 =head1 METHODS
@@ -248,6 +300,47 @@ You can omit this argument and this module searches ffmpeg command within PATH e
 =head2 timeout()
 
 Set command timeout.Default is 0.
+
+=head2 input_file( @files );
+
+Specify names of input file(s).
+
+=head2 output_file('/path/to/output_file')
+
+Specify output file name.
+
+=head2 global_options( @options )
+
+Specify ffmpeg global options.
+
+=head2 infile_options( @options )
+
+Specify ffmpeg infile options.
+
+=head2 outfile_options( @options )
+
+Specify ffmpeg outfile options.
+
+
+=head2 options( @options )
+
+Specify ffmpeg command options directly including input files and and output file.
+
+=head2 execute()
+
+Executes ffmpeg command with specified options.
+
+=head2 exec()
+
+An alias of execute()
+
+=head2 stdout()
+
+Get ffmpeg command output to stdout.
+
+=head2 stderr()
+
+Get ffmpeg command output to stderr.
 
 =head2 input_options({ %options })
 
@@ -316,37 +409,11 @@ Set the comment.
 
 =back
 
-=head2 input_file( @files );
-
-Specify names of input file(s) using with options() method.
-
-=head2 output_file('/path/to/output_file')
-
-Specify output file name using with options() method.
-
-=head2 options( @options )
-
-Specify ffmpeg command options directly.
-
-=head2 execute()
-
-Executes ffmpeg comman with specified options.
-
-=head2 exec()
-
-An alias of execute()
-
-=head2 stdout()
-
-Get ffmpeg command output to stdout.
-
-=head2 stderr()
-
-Get ffmpeg command output to stderr.
-
-=head1 AUTHOR
+=head1 AUTHORS
 
 Gosuke Miyashita, C<< <gosukenator at gmail.com> >>
+
+Munechika Sumikawa, C<< <sumikawa at sumikawa.jp> >>
 
 =head1 BUGS
 
