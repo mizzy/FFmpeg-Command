@@ -2,7 +2,7 @@ package FFmpeg::Command;
 
 use warnings;
 use strict;
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 use base qw( Class::Accessor::Fast Class::ErrorHandler );
 __PACKAGE__->mk_accessors(qw/

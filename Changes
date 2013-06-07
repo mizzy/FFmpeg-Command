@@ -1,5 +1,10 @@
 Revision history for FFmpeg-Command
 
+0.19    Fri Jun 7
+        Support for avconv
+        https://github.com/mizzy/FFmpeg-Command/pull/8
+        Thanks to @espizo!
+
 0.18    Tue Apr 17
         Current version of ffmpeg has global, infile and outfile options.
         So fix how to handling options.
