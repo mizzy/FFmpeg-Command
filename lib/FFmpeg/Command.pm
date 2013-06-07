@@ -43,8 +43,24 @@ our %metadata = (
 
 sub new {
     my $class = shift;
+
+    my $command;
+
+    for my $cmd ( shift || 'ffmpeg', 'avconv' ) {
+        system("$cmd -version > /dev/null 2>&1");
+        my $ret = $? >> 8;
+        if ( $ret == 0 || $ret == 1 ) {
+            $command = $cmd;
+            last;
+        }
+    }
+    unless ( $command ) {
+        carp "Can't find ffmpeg/avconv command.";
+        exit 0;
+    }
+
     my $self            =  {
-        ffmpeg          => shift || 'ffmpeg',
+        ffmpeg          => $command,
         options         => [],
         global_options  => [],
         infile_options  => [],
@@ -53,13 +69,6 @@ sub new {
         output_file     => '',
         timeout         => 0,
     };
-
-    system("$self->{ffmpeg} -version > /dev/null 2>&1");
-    my $ret = $? >> 8;
-    if ( $ret != 0 and $ret != 1 ) {
-        carp "Can't find ffmpeg command.";
-        exit 0;
-    }
 
     bless $self, $class;
 }
@@ -180,11 +189,12 @@ __END__
 
 =head1 NAME
 
-FFmpeg::Command - A wrapper class for ffmpeg command line utility.
+FFmpeg::Command - A wrapper class for ffmpeg/avconv command line utility.
 
 =head1 DESCRIPTION
 
-A simple interface for using ffmpeg command line utility.
+A simple interface for using ffmpeg command line utility with fallback to use
+the newer avconv utility if ffmpeg is not installed.
 
 =head1 SYNOPSIS
 

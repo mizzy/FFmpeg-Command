@@ -17,5 +17,5 @@ my $cmd = $ffmpeg->_compose_command;
 
 is(
     join(' ', @$cmd),
-    'ffmpeg -y -ga -gb -ia -ib -i filename1 -oa -ob output_file'
+    $ffmpeg->ffmpeg . ' -y -ga -gb -ia -ib -i filename1 -oa -ob output_file'
 );
