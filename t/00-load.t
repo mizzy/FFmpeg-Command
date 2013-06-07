@@ -15,4 +15,5 @@ my $ff = FFmpeg::Command->new();
 $ff->options( [ '-version' ] );
 $ff->exec();
 my $out = $ff->stderr || $ff->stdout;
-like $out, qr/^FFmpeg version/i;
+my $expected = $ff->ffmpeg . ' version';
+like $out, qr/^$expected/i;

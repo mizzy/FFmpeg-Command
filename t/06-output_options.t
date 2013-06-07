@@ -24,7 +24,7 @@ my $cmd = $ffmpeg->_compose_command;
 
 is(
     join(' ', @$cmd),
-    'ffmpeg -y -i in.mp4 -acodec libaac -b 600 -f mp4 -vcodec mpeg4 -ar 48000 -s 320x240 -ab 64 out.mp4'
+    $ffmpeg->ffmpeg . ' -y -i in.mp4 -acodec libaac -b 600 -f mp4 -vcodec mpeg4 -ar 48000 -s 320x240 -ab 64 out.mp4'
 );
 
 $ffmpeg = FFmpeg::Command->new;
@@ -37,5 +37,5 @@ $ffmpeg->output_options({
 $cmd = $ffmpeg->_compose_command;
 is(
     join(' ', @$cmd),
-    'ffmpeg -y -i in.mp4 -b 600 -acodec libfaac -f mp4 -vcodec mpeg4 -ar 48000 -s 320x240 -ab 64 out.mp4'
+    $ffmpeg->ffmpeg . ' -y -i in.mp4 -b 600 -acodec libfaac -f mp4 -vcodec mpeg4 -ar 48000 -s 320x240 -ab 64 out.mp4'
 );
