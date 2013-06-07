@@ -22,4 +22,5 @@ $ff->exec();
 
 my $out = $stderr || $stdout;
 
-like $out, qr/^FFmpeg version/i;
+my $expected = $ff->ffmpeg . ' version';
+like $out, qr/^$expected/i;
